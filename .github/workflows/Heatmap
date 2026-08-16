@@ -8,6 +8,8 @@ library(magrittr)
 library(ggplot2)
 library(pheatmap)
 ```
+#First I made an excel sheet of the organisms, CAZyme categories, and gene counts.
+
 ```{r}
 #normalizing CAZYme data 
 library(dplyr)
@@ -41,7 +43,6 @@ write.csv(similarity_matrix, "C:/Users/naamo/OneDrive/Documents/DnivRevisions/ne
 ```{r}
 #heatmap using pearson correlation USE THIS
 
-svg("C:/Users/naamo/OneDrive/Documents/Dniv/Heatmap/CAZYheatmap4252025.svg", width = 10, height = 8)
 
 # Step 1: Read the transposed CAZyme data
 cazyme_data_matrix <- read.csv("C:/Users/naamo/OneDrive/Documents/DnivRevisions/transposed_data_matrix.csv", row.names = 1, check.names = FALSE)
