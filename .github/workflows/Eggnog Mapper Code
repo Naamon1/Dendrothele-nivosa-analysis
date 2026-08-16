@@ -1,36 +1,851 @@
-# This is a basic workflow to help you get started with Actions
+# How to make a table out of eggNOG outputs
 
-name: CI
 
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+```{r}
+library(dplyr)
+library(readr)
+library(magrittr)
+library(ggplot2)
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+#the below syntax is object , function. the arrow denotes an object. in quotes you put the file path then skip the extra stuff at the beginning of the file which is the first 4 lines
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+dniv<- read_tsv(file.choose(), skip=4)
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+
+```
+```{r}
+stereaceae <- read_tsv(file.choose(), skip=4)
+
+stereaceae_sum <- group_by(stereaceae, PFAMs) %>% summarise(num_fam = n())
+
+
+
+#filtering for combined table
+filtered_stereaceae <- stereaceae_sum %>%
+  filter(PFAMs %in% c ("Chromo,RVP_2,RVT_1,Retrotrans_gag,rve,zf-CCHC", "Chromo,Peptidase_A2E,RVT_1,rve", "rve", "gag-asp_proteas", "DUF5314,RVT_2,gag_pre-integrs,rve,zf-CCHC", "p450", "MFS_1", "RVT_2,Retrotran_gag_2,gag_pre-integrs,rve", "Pkinase", "RVT_2,Retrotran_gag_2,gag_pre-integrs,rve,zf-CCHC", "Asp_protease_2", "Retrotran_gag_2,gag_pre-integrs,rve", "WD40", "RVT_2,gag_pre-integrs,rve", "adh_short", "Sugar_tr", "RVP_2", "GMC_oxred_C,GMC_oxred_N", "RRM_1", "Chromo"))
+
+stereaceae_sum <- stereaceae_sum[order(stereaceae_sum$num_fam, decreasing=TRUE),] %>% top_n(21) %>% slice(2:21)
+# the code directly above this is not related to filtering for the combined table
+
+stereaceae_caz <- group_by(stereaceae, CAZy) %>% summarise(num_fam = n())
+
+stereaceae_caz <- stereaceae_caz[order(stereaceae_caz$num_fam, decreasing=TRUE),] %>% top_n(58) %>% slice(2:58)
+
+
+#getting total count from the columns
+sterallpfams <- stereaceae_sum %>% summarize(total= sum(num_fam, na.rm=TRUE))
+print(sterallpfams)
+
+sterallcazy <- stereaceae_caz %>% summarize(total=sum(num_caz, na.rm=TRUE))
+print(sterallcazy)
+
+#i am now in doubt about how useful ^^ is
+
+```
+```{r}
+heterobasidion <- read_tsv(file.choose(), skip=4)
+
+heterobasidion_sum <- group_by(heterobasidion, PFAMs) %>% summarise(num_fam = n())
+
+#filtering for combined table
+filtered_heterobasidion <- heterobasidion_sum %>%
+  filter(PFAMs %in% c ("Chromo,RVP_2,RVT_1,Retrotrans_gag,rve,zf-CCHC", "Chromo,Peptidase_A2E,RVT_1,rve", "rve", "gag-asp_proteas", "DUF5314,RVT_2,gag_pre-integrs,rve,zf-CCHC", "p450", "MFS_1", "RVT_2,Retrotran_gag_2,gag_pre-integrs,rve", "Pkinase", "RVT_2,Retrotran_gag_2,gag_pre-integrs,rve,zf-CCHC", "Asp_protease_2", "Retrotran_gag_2,gag_pre-integrs,rve", "WD40", "RVT_2,gag_pre-integrs,rve", "adh_short", "Sugar_tr", "RVP_2", "GMC_oxred_C,GMC_oxred_N", "RRM_1", "Chromo"))
+
+heterobasidion_sum <- heterobasidion_sum[order(heterobasidion_sum$num_fam, decreasing=TRUE),] %>% top_n(21) %>% slice(2:21)
+
+heterobasidion_caz <- group_by(heterobasidion, CAZy) %>% summarise(num_fam = n())
+
+heterobasidion_caz <- heterobasidion_caz[order(heterobasidion_caz$num_fam, decreasing=TRUE),] %>% top_n(52) %>% slice(2:52)
+```
+
+
+```{r}
+#this is how you summarize columns
+
+dniv_sum <- group_by(dniv, PFAMs) %>% summarise(num_fam = n()) 
+
+dniv_sum <- dniv_sum[order(dniv_sum$num_fam, decreasing=TRUE),] %>% top_n(21) %>% slice(2:21)
+
+dniv_caz <- group_by(dniv, CAZy) %>% summarize(num_caz = n())
+
+dniv_caz <- dniv_caz[order(dniv_caz$num_caz, decreasing=TRUE),] %>% top_n(55) %>% slice(2:55)
+
+write.csv(dniv_caz, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\dniv_caz.csv", row.names = FALSE)
+
+#getting total count from the columns
+dnivallpfams <- dniv_sum %>% summarize(total= sum(num_fam, na.rm=TRUE))
+print(dnivallpfams)
+
+dnivallcazy <- dniv_caz %>% summarize(total=sum(num_caz, na.rm=TRUE))
+print(dnivallcazy)
+
+#aes assigns variables, colors, etc to the plot
+
+ggplot(dniv_sum, aes(x=PFAMs, y=num_fam)) + geom_col(aes(color = PFAMs)) + labs(x = "Protein Family (PFAM)" , y = "Number of inferred orthologs")
+```
+
+
+```{r}
+dniv_sumdesc <- group_by(dniv, Description) %>% summarise(num_desc = n()) %>% top_n(16) %>% slice(2:16)
+
+ggplot(dniv_sumdesc, aes(x=Description, y=num_desc)) + geom_col(aes(color = Description)) + labs(x = "Protein Family Descriptions" , y = "Number of Descriptions per Category")
+```
+How to find unique PFAMS/CAZymes in each genome compared to the others:
+Since you were manipulating the original CAZ/PFAM summaries, obtain those summaries again but put them into a new dataframe
+```{r}
+#Here is the one for PFAMs
+dniv_pfam <- dniv$PFAMs 
+heterobasidion_pfam <- heterobasidion$PFAMs
+stereaceae_pfam <- stereaceae$PFAMs
+```
+```{r}
+#Here is the one for CAZymes
+dniv_cazymes <- dniv$CAZy
+heterobasidion_cazymes <- heterobasidion$CAZy
+stereaceae_cazymes <- stereaceae$CAZy
+```
+
+Then you want to use the setdiff feature to detect what is unique in your genome of interest and write it to a new dataframe
+```{r}
+#Here is the one for PFAMS
+dniv_unique_pfams <- setdiff(dniv_pfam, union(heterobasidion_pfam, stereaceae_pfam))
+heterobasidion_unique_pfams <- setdiff(heterobasidion_pfam, union(dniv_pfam, stereaceae_pfam))
+stereaceae_unique_pfams <- setdiff(stereaceae_pfam, union(dniv_pfam, heterobasidion_pfam))
+```
+```{r}
+#Here is the one for CAZymes
+dniv_unique_cazy <- setdiff(dniv_cazymes, union(heterobasidion_cazymes, stereaceae_cazymes))
+heterobasidion_unique_cazy <- setdiff(heterobasidion_cazymes, union(dniv_cazymes, stereaceae_cazymes))
+stereaceae_unique_cazy <- setdiff(stereaceae_cazymes, union(dniv_cazymes, heterobasidion_cazymes))
+```
+
+You can summarize the unique PFAM and CAZy data with the following 
+```{r}
+length(dniv_unique_pfams)
+length(dniv_unique_cazy)
+length(heterobasidion_unique_pfams)  
+length(heterobasidion_unique_cazy)
+length(stereaceae_unique_pfams)
+length(stereaceae_unique_cazy)
+```
+```{r}
+dniv_unique_pfams
+```
+
+
+how to put summary data from two taxa together
+
+make the summary opject for two or more taxa, omitting the top and slice functions. change the summarize section to have object  num_pfams_dniv for example 
+
+```{r}
+#putting PFAMs side by side
+
+num_empty_rows_hetero <- 2 
+empty_rows <- tibble(
+  PFAMs = rep(NA_character_, num_empty_rows_hetero),
+  num_fam = rep(NA_real_, num_empty_rows_hetero)
+)
+
+filtered_heterobasidion2 <- bind_rows(filtered_heterobasidion, empty_rows)
+
+#The above code created a table two empty columns with the headers PFAMs and num_fam respectively, both with two empty rows. the rep function placed the character NA in the PFAM column because the PFAM column uses strings. It placed NA in the num_fam column with NA_real_ because this column deals with numbers. 
+
+#The bind_rows function appends the empty_rows table to the bottom of the filtered_heterobasidion table. 
+
+#trying to rearrange the rows of the filtered_heterobasidion 2
+
+filtered_heterobasidion2 <- tibble(
+  PFAMs= c("Chromo,RVP_2,RVT_1,Retrotrans_gag,rve,zf-CCHC", "Chromo,Peptidase_A2E,RVT_1,rve", "rve", "gag-asp_proteas", "DUF5314,RVT_2,gag_pre-integrs,rve,zf-CCHC", "p450", "MFS_1", "RVT_2,Retrotran_gag_2,gag_pre-integrs,rve", "Pkinase", "RVT_2,Retrotran_gag_2,gag_pre-integrs,rve,zf-CCHC", "Asp_protease_2", "Retrotran_gag_2,gag_pre-integrs,rve", "WD40", "RVT_2,gag_pre-integrs,rve", "adh_short", "Sugar_tr", "RVP_2", "GMC_oxred_C,GMC_oxred_N", "RRM_1", "Chromo"),
+  num_fam=c("121","15","75","32","NA","115","100","9","107","NA","4","27","53","4","25","36","23", "27", "39", "7")
+)
+
+#Basically what happened here is I put all the data in manually based on the information in the previous iteration of the filtered_heterobasidion2 table created above.
+
+
+
+num_empty_rows_ster <- 12 
+empty_rows_ster <- tibble(
+  PFAMs = rep(NA_character_, num_empty_rows_ster),
+  num_fam = rep(NA_real_, num_empty_rows_ster)
+)
+
+filtered_stereaceae2 <- bind_rows(filtered_stereaceae, empty_rows_ster)
+
+filtered_stereaceae2 <- tibble(
+  PFAMs= c("Chromo,RVP_2,RVT_1,Retrotrans_gag,rve,zf-CCHC", "Chromo,Peptidase_A2E,RVT_1,rve", "rve", "gag-asp_proteas", "DUF5314,RVT_2,gag_pre-integrs,rve,zf-CCHC", "p450", "MFS_1", "RVT_2,Retrotran_gag_2,gag_pre-integrs,rve", "Pkinase", "RVT_2,Retrotran_gag_2,gag_pre-integrs,rve,zf-CCHC", "Asp_protease_2", "Retrotran_gag_2,gag_pre-integrs,rve", "WD40", "RVT_2,gag_pre-integrs,rve", "adh_short", "Sugar_tr", "RVP_2", "GMC_oxred_C,GMC_oxred_N", "RRM_1", "Chromo"),
+  num_fam=c("NA","NA","NA","NA","NA","159","174","NA","136","NA","NA","NA","57","NA","98","38","NA", "54", "36", "NA")
+)
+
+combined_sum <- dplyr::bind_cols(dniv_sum, filtered_heterobasidion2, filtered_stereaceae2) 
+#This code immediately above puts the summary columns of PFAM type and quantity for d. nivosa, heterobasidion annosum, and stereum hirsutum side by side. Unless you deliberately change the column headings earlier in the process, you need to look at this code to ascertain the order of summary data. 
+
+#putting CAZymes side by side
+
+filt_het_caz <- tibble(
+  CAZy= c("GH18","GH3", "GT2", "GH16", "GH31", "GH47", "GT1", "AA9,CBM1", "GH5,GH9", "GT15", "GH12", "GH29", "GT22", "GT4", "GH13", "GH43", "GT39", "GH20", "GH51", "GT20"), num_caz= c("9","10","9", "6", "10", "5", "1", "5", "4", "2", "2", "2", "3", "4", "3", "NA", "3", "5", "1", "2")
+)
+
+filt_ster_caz <- tibble(
+  CAZy= c("GH18","GH3", "GT2", "GH16", "GH31", "GH47", "GT1", "AA9,CBM1", "GH5,GH9", "GT15", "GH12", "GH29", "GT22", "GT4", "GH13", "GH43", "GT39", "GH20", "GH51", "GT20"), num_caz= c("12","NA","15", "10", "4", "4", "3", "5", "6", "4", "3", "3", "4", "4", "8", "4", "3", "4", "2", "2")
+)
+
+combined_caz <- dplyr::bind_cols(dniv_caz, filt_het_caz, filt_ster_caz)
+
+#The code group immediately above was me manually inputting the data and then combining all of the summary CAZyme tables like I did with the PFAMs.
+
+#Saving the tables to .csv file below for export to Excel and Adobe Illustrator
+
+write.csv(combined_sum, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\Functional Annotation Files\\R Studio Table CSVs\\combined_sum.csv")
+
+write.csv(combined_caz, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\Functional Annotation Files\\R Studio Table CSVs\\combined_caz.csv")
+```
+```{r}
+#Bar plots of PFAMS and CAZy
+
+barpfam <- data.frame(
+  Category = factor(c("Dendrothele nivosa", "Heterobasidion annosum", "Stereum hirsutum")),
+  Value = c(3300, 3101, 3338))
+
+barpfamplot <- ggplot(barpfam, aes(x = Category, y = Value, fill = Category)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Value), vjust = -0.2, color = "black", size = 4) +
+  labs(title = "PFAM quantity in Dendrothele nivosa, Heterobasidion annosum, and Stereum hirsutum", x = "Taxon", y = "Number of PFAM categories") +
+  theme_minimal()+ theme(plot.title = element_text(hjust=0.1), axis.title.x = element_text(size = 11), axis.title.y = element_text(size = 12))
+
+
+ggsave("dnivpfambargraph.pdf", plot=barpfamplot, device=pdf, path="C:\\Users\\naamo\\OneDrive\\Documents\\Dniv", dpi=600, width=9, height=7)
+
+print(barpfamplot)
+
+barcazy <- data.frame(Category= factor(c("Dendrothele nivosa", "Heterobasidion annosum", "Stereum hirsutum")),
+  Value = c(54, 51, 57)) 
+
+barcazyplot <- ggplot(barcazy, aes(x = Category, y = Value, fill = Category)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Value), vjust = -0.2, color = "black", size = 4) +
+  labs(title = "CAZy quantity in Dendrothele nivosa, Heterobasidion annosum, and Stereum hirsutum", x = "Taxon", y = "Number of CAZy categories") +
+  theme_minimal()+ theme(plot.title = element_text(hjust=0.1), axis.title.x = element_text(size = 11), axis.title.y = element_text(size = 12)) + scale_fill_manual(values = c("Dendrothele nivosa"="purple", "Heterobasidion annosum"="orange","Stereum hirsutum" = "yellow"))
+
+
+ggsave("dnivcazybargraph.pdf", plot=barcazyplot, device=pdf, path="C:\\Users\\naamo\\OneDrive\\Documents\\Dniv", dpi=600, width=9, height=7)
+
+print(barcazyplot)
+```
+
+
+```{r} 
+#This is the old heatmap code. Ignore this.
+
+#Heatmap
+library(ggplot2)
+library(reshape2)
+library(pheatmap)
+
+# Load datasets
+dniv <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\dniv_caz.csv")
+heterobasidion <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\heterobasidion_caz.csv")
+stereaceae <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\stereaceae_caz.csv")
+
+# Rename count columns
+colnames(dniv)[2] <- "dniv"
+colnames(heterobasidion)[2] <- "heterobasidion"
+colnames(stereaceae)[2] <- "stereaceae"
+
+# Merge datasets on CAZy column
+data_merged <- Reduce(function(x, y) merge(x, y, by = "CAZy", all = TRUE), 
+                      list(dniv, heterobasidion, stereaceae))
+
+# Replace NA with 0
+data_merged[is.na(data_merged)] <- 0
+
+# Convert to matrix format for heatmap
+rownames(data_merged) <- data_merged$CAZy
+data_matrix <- as.matrix(data_merged[, -1])
+
+write.csv(data_matrix, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\data_matrix.csv")
+
+str(data_matrix)
+
+# Create heatmap
+pheatmap(data_matrix, 
+         cluster_rows = FALSE, 
+         cluster_cols = FALSE, 
+         scale = "row", 
+         fontsize_row = 5,
+         main = "CAZy Family Heatmap",
+         cellheight = 4.15)
+
+```
+
+
+```{r}
+#Heat Map Attempt 2
+# Load required package
+library(pheatmap)
+
+# Load datasets
+dniv <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\dniv_caz.csv")
+heterobasidion <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\heterobasidion_caz.csv")
+stereaceae <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\stereaceae_caz.csv")
+
+# Rename count columns
+colnames(dniv)[2] <- "dniv"
+colnames(heterobasidion)[2] <- "heterobasidion"
+colnames(stereaceae)[2] <- "stereaceae"
+
+# Merge datasets on CAZy column
+data_merged <- Reduce(function(x, y) merge(x, y, by = "CAZy", all = TRUE), 
+                      list(dniv, heterobasidion, stereaceae))
+
+# Replace NA with 0
+data_merged[is.na(data_merged)] <- 0
+
+# **Reorder columns so that "dniv" is the leftmost column**
+data_merged <- data_merged[, c("CAZy", "dniv", setdiff(names(data_merged), c("CAZy", "dniv")))]
+
+# **Sort rows by "dniv" values in descending order (hottest to coldest)**
+data_merged <- data_merged[order(data_merged$dniv, decreasing = TRUE), ]
+
+# Convert to matrix format for heatmap (excluding CAZy column)
+rownames(data_merged) <- data_merged$CAZy
+data_matrix <- as.matrix(data_merged[, -1])  # Exclude CAZy column
+
+# Save matrix as CSV (optional)
+write.csv(data_matrix, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\data_matrix.csv")
+
+# Check matrix structure
+str(data_matrix)
+
+breaks_seq<- seq(0, 20, length.out=100)
+color_palette <- colorRampPalette(c("white", "red"))(100)
+
+# Create heatmap with ordered "dniv" column
+pheatmap(data_matrix, 
+         cluster_rows = FALSE, 
+         cluster_cols = FALSE, 
+         scale = "none", 
+         breaks = breaks_seq,
+         color = color_palette,
+         fontsize_row = 5,
+         main = "CAZy Family Heatmap",
+         cellheight = 4.20)
+```
+
+```{r}
+#Russula emetica CAZy gathering and CSV creation
+rusemetica<- read_tsv(file.choose(), skip=4)
+
+rusemetica_caz <- group_by(rusemetica, CAZy) %>% summarize(num_caz = n())
+
+rusemetica_caz <- rusemetica_caz[order(rusemetica_caz$num_caz, decreasing=TRUE),] %>% top_n(36) %>% slice(2:36) 
+
+write.csv(rusemetica_caz, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\rusemetica_caz.csv", row.names = FALSE)
+
+#Lactarius deliciosus CAZy gathering and CSV creation
+lacdel<- read_tsv(file.choose(), skip=4)
+
+lacdel_caz <- group_by(lacdel, CAZy) %>% summarize(num_caz = n())
+
+lacdel_caz <- lacdel_caz[order(lacdel_caz$num_caz, decreasing=TRUE),] %>% top_n(39) %>% slice(2:39)
+
+write.csv(lacdel_caz, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\lacdel_caz.csv", row.names = FALSE)
+
+#Dendrothele microspora CAZy gathering and CSV creation
+denmic<- read_tsv(file.choose(), skip=4)
+
+denmic_caz <- group_by(denmic, CAZy) %>% summarize(num_caz = n())
+
+denmic_caz <- denmic_caz[order(denmic_caz$num_caz, decreasing=TRUE),] %>% top_n(55) %>% slice(2:55)
+
+write.csv(denmic_caz, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\denmic_caz.csv", row.names = FALSE)
+```
+
+```{r}
+#Making the Heatmap
+pdf("CAZYheatmap3122025.pdf", width = 10, height = 10)
+
+# Load required package
+library(pheatmap)
+
+# Load data sets
+D.nivosa<- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\dniv_caz.csv")
+H.annosum <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\heterobasidion_caz.csv")
+S.hirsutum <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\stereaceae_caz.csv")
+R.emetica <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\rusemetica_caz.csv")
+L.deliciosus <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\lacdel_caz.csv")
+D.microspora <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\denmic_caz.csv")
+
+# Rename count columns
+colnames(D.nivosa)[2] <- "D. nivosa"
+colnames(H.annosum)[2] <- "H. annosum"
+colnames(S.hirsutum)[2] <- "S. hirsutum"
+colnames(R.emetica)[2] <- "R. emetica"
+colnames(L.deliciosus)[2] <- "L. deliciosus"
+colnames(D.microspora)[2] <- "D. microspora"
+
+# Merge datasets on CAZy column
+data_merged <- Reduce(function(x, y) merge(x, y, by = "CAZy", all = TRUE), list(D.nivosa, H.annosum, S.hirsutum, R.emetica, L.deliciosus, D.microspora))
+
+# Replace NA with 0
+data_merged[is.na(data_merged)] <- 0
+
+# **Reorder columns so that "dniv" is the leftmost column**
+data_merged <- data_merged[, c("CAZy", "D. nivosa", setdiff(names(data_merged), c("CAZy", "D. nivosa")))]
+
+# **Sort rows by "dniv" values in descending order (hottest to coldest)**
+data_merged <- data_merged[order(data_merged$`D. nivosa`, decreasing = TRUE), ]
+
+# Convert to matrix format for heatmap (excluding CAZy column)
+rownames(data_merged) <- data_merged$CAZy
+data_matrix <- as.matrix(data_merged[, -1])  # Exclude CAZy column
+
+# Save matrix as CSV (optional)
+write.csv(data_matrix, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\data_matrix.csv")
+
+# Check matrix structure
+str(data_matrix)
+
+breaks_seq<- seq(0, 25, length.out=100)
+color_palette <- colorRampPalette(c("white", "red"))(100)
+
+# Create heatmap with ordered "dniv" column
+CAZYheatmap <- pheatmap(data_matrix, 
+         cluster_rows = TRUE, 
+         cluster_cols = TRUE, 
+         scale = "none", 
+         breaks = breaks_seq,
+         color = color_palette,
+         fontsize_row = 4,
+         main = "CAZy Family Heatmap",
+         cellheight = 3.2)
+dev.off()
+
+CAZYheatmap
+```
+
+
+
+
+
+```{r}
+
+#ignore this heatmap
+
+# Load required package
+library(pheatmap)
+
+# Load data sets
+D.nivosa <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\dniv_caz.csv")
+H.annosum <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\heterobasidion_caz.csv")
+S.hirsutum <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\stereaceae_caz.csv")
+R.emetica <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\rusemetica_caz.csv")
+L.deliciosus <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\lacdel_caz.csv")
+D.microspora <- read.csv("C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\denmic_caz.csv")
+
+# Rename count columns
+colnames(D.nivosa)[2] <- "D.nivosa"
+colnames(H.annosum)[2] <- "H.annosum"
+colnames(S.hirsutum)[2] <- "S.hirsutum"
+colnames(R.emetica)[2] <- "R.emetica"
+colnames(L.deliciosus)[2] <- "L.deliciosus"
+colnames(D.microspora)[2] <- "D.microspora"
+
+# Merge datasets on CAZy column
+data_merged <- Reduce(function(x, y) merge(x, y, by = "CAZy", all = TRUE), 
+                      list(D.nivosa, H.annosum, S.hirsutum, R.emetica, L.deliciosus, D.microspora))
+
+# Replace NA with 0
+data_merged[is.na(data_merged)] <- 0
+
+# Define the desired column order
+column_order <- c("D. nivosa", "H. annosum", "S. hirsutum", "R. emetica", "L. deliciosus", "D. microspora")
+data_merged <- data_merged[, c("CAZy", column_order)]
+
+# Sort rows by "D.nivosa" values in descending order
+data_merged <- data_merged[order(data_merged$D.nivosa, decreasing = TRUE), ]
+
+# Convert to matrix format for heatmap (excluding CAZy column)
+rownames(data_merged) <- data_merged$CAZy
+data_matrix <- as.matrix(data_merged[, -1])
+
+# Save matrix as CSV (optional)
+write.csv(data_matrix, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\DnivosaComputation\\CAZy Dataframes for Pie Chart and Heatmaps\\data_matrix.csv")
+
+# Define heatmap color and breaks
+breaks_seq <- seq(0, 25, length.out = 100)
+color_palette <- colorRampPalette(c("white", "red"))(100)
+
+# Cluster rows but not columns (preserve order)
+dist_rows <- dist(data_matrix)  # Compute row distances
+dend_rows <- hclust(dist_rows)  # Perform row clustering
+
+# Create heatmap with fixed column order
+CAZYheatmap <- pheatmap(data_matrix, 
+                        cluster_rows = dend_rows,  # Apply row clustering
+                        cluster_cols = TRUE,  # Preserve column order
+                        scale = "none", 
+                        breaks = breaks_seq,
+                        color = color_palette,
+                        fontsize_row = 5,
+                        main = "CAZy Family Heatmap",
+                        cellheight = 3)
+
+CAZYheatmap
+
+```
+
+```{r}
+# Creating a distance matrix from a Newick Tree File 
+install.packages("ape")  # Run this if 'ape' is not installed
+library(ape)
+
+# Load the tree file (replace with actual path)
+tree_file <- "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\Genome Trees\\1_25_2025_speciestree"
+phylo_tree <- read.tree(tree_file)
+
+# Convert to a distance matrix
+phylo_dist_matrix <- cophenetic(phylo_tree)
+
+# Print and inspect the matrix
+print(phylo_dist_matrix)
+
+# Save the matrix as a CSV file (optional)
+write.csv(phylo_dist_matrix, "C:\\Users\\naamo\\OneDrive\\Documents\\Dniv\\heatmap.distance.matrix")
+
+#Define the taxa of interest
+selected_taxa <- c("dniviosa", "lactariusdeliciosus", "russulaemetica", 
+                   "D", "heterobasidionannosum", "stereumhirsutum")
+
+#Extract the distance matrix for only the selected taxa:
+selected_dist_matrix <- phylo_dist_matrix[selected_taxa, selected_taxa]
+
+# Define new names
+new_names <- c("dniviosa" = "D. nivosa", 
+               "lactariusdeliciosus" = "L. deliciosus",
+               "russulaemetica" = "R. emetica",
+               "D" = "D. microspora",
+               "heterobasidionannosum" = "H. annosum",
+               "stereumhirsutum" = "S. hirsutum")
+
+# Rename rows and columns
+rownames(selected_dist_matrix) <- new_names[rownames(selected_dist_matrix)]
+colnames(selected_dist_matrix) <- new_names[colnames(selected_dist_matrix)]
+
+
+print(selected_dist_matrix)
+
+#optional exporting distance matrix
+write.csv(selected_dist_matrix, "selected_taxa_distance_matrix.csv", row.names = TRUE)
+
+
+```
+
+```{r}
+#manually reordering column clustering
+custom_order <- c("D. nivosa", "H. annosum", "S. hirsutum", "R. emetica", "L. deliciosus","D. microspora")
+selected_dist_matrix <- selected_dist_matrix[custom_order, custom_order]
+
+
+# Convert to distance object
+evolutionary_dist <- as.dist(selected_dist_matrix)
+
+# Perform hierarchical clustering
+evolutionary_tree <- hclust(evolutionary_dist, method = "average")
+
+# Apply clustering to heatmap
+CAZYheatmap <- pheatmap(data_matrix, 
+                        cluster_rows = TRUE,  
+                        cluster_cols = evolutionary_tree,  
+                        scale = "none", 
+                        breaks = breaks_seq,
+                        color = color_palette,
+                        fontsize_row = 5,
+                        main = "CAZy Family Heatmap (Phylogenetic Clustering)",
+                        cellheight = 3)
+
+```
+
+
+```{r}
+#custom clustering with the correct column order attempt (USE THIS ONE/ DONt use anymore but retain)
+
+svg("C:/Users/naamo/OneDrive/Documents/Dniv/Heatmap/4142025heatmap.svg", width = 15, height = 10)
+
+# Define custom order
+custom_order <- c("D. nivosa", "H. annosum", "S. hirsutum", "R. emetica", "L. deliciosus", "D. microspora")
+
+# Ensure row and column names match exactly
+if (!all(custom_order %in% rownames(selected_dist_matrix))) {
+  stop("Error: Some names in custom_order are not present in selected_dist_matrix")
+}
+
+# Convert to distance object
+evolutionary_dist <- as.dist(selected_dist_matrix)
+
+# Perform hierarchical clustering
+evolutionary_tree <- hclust(evolutionary_dist, method = "average")
+
+# Reorder the dendrogram to match custom_order **without changing clustering structure**
+evolutionary_tree$labels <- custom_order  # Assign correct labels
+evolutionary_tree$order <- match(custom_order, evolutionary_tree$labels)  # Reorder labels
+
+# Apply clustering to heatmap with reordered columns
+CAZYheatmap <- pheatmap(data_matrix[, custom_order],  # Reorder columns manually
+                        cluster_rows = FALSE,  
+                        cluster_cols = evolutionary_tree,  
+                        scale = "none", 
+                        breaks = breaks_seq,
+                        color = color_palette,
+                        fontsize_row = 3.4,
+                        main = "CAZy Family Heatmap",
+                        cellheight = 3)
+dev.off()
+CAZYheatmap
+
+```
+```{r}
+#PDF jpeg shi for later in the above code
+pdf("C:/Users/naamo/OneDrive/Documents/Dniv/Heatmap/CAZYheatmap4252025.pdf", width = 15, height = 10)
+
+jpeg("C:/Users/naamo/OneDrive/Documents/Dniv/Heatmap/CAZYheatmap4252025.jpg", width = 800, height = 600, res=120)
+```
+
+
+```{r}
+#heatmap using pearson correlation USE THIS
+
+svg("C:/Users/naamo/OneDrive/Documents/Dniv/Heatmap/CAZYheatmap4252025.svg", width = 10, height = 8)
+
+# Step 1: Read the transposed CAZyme data
+cazyme_data_matrix <- read.csv("C:/Users/naamo/OneDrive/Documents/Dniv/DnivosaComputation/CAZy Dataframes for Pie Chart and Heatmaps/transposed_data_matrix.csv", row.names = 1, check.names = FALSE)
+
+# Step 2: Compute the Pearson correlation matrix for organisms
+similarity_matrix <- cor(t(cazyme_data_matrix), method = "pearson")
+
+# Step 3: Extract similarity scores for Dendrothele nivosa
+nivosa_similarity <- similarity_matrix["Dendrothele nivosa", ]
+nivosa_similarity_sorted <- sort(nivosa_similarity, decreasing = TRUE)
+
+# Print similarity scores
+print("Similarity scores for Dendrothele nivosa:")
+print(nivosa_similarity_sorted)
+
+# Step 4: Generate heatmap of all organisms based on similarity
+pearsonheatmap <- pheatmap(similarity_matrix,
+         main = "CAZyme Similarity Heatmap (Pearson Correlation)",
+         color = colorRampPalette(c("black", "blue", "red"))(100),
+         fontsize_row = 8,
+         fontsize_col = 8,
+         clustering_distance_rows = "euclidean",
+         clustering_distance_cols = "euclidean",
+         clustering_method = "complete",
+         treeheight_row = 50,  
+         treeheight_col = 50)
+
+dev.off()
+pearsonheatmap
+
+```
+```{r}
+#pearson statistical info
+# Set your target organism
+target <- "Dendrothele nivosa"
+
+# Get all organisms except the target
+others <- setdiff(rownames(cazyme_data_matrix), target)
+
+# Initialize results data frame
+nivosa_cor_results <- data.frame(
+  Organism = character(),
+  Correlation = numeric(),
+  P_value = numeric(),
+  stringsAsFactors = FALSE
+)
+
+# Loop over each other organism
+for (org in others) {
+  test_result <- cor.test(cazyme_data_matrix[target, ], cazyme_data_matrix[org, ], method = "pearson")
+  
+  nivosa_cor_results <- rbind(nivosa_cor_results, data.frame(
+    Organism = org,
+    Correlation = test_result$estimate,
+    P_value = test_result$p.value
+  ))
+}
+
+# Sort by correlation strength (optional)
+nivosa_cor_results <- nivosa_cor_results[order(-nivosa_cor_results$Correlation), ]
+
+# View results
+print(nivosa_cor_results)
+
+```
+
+
+
+```{r}
+#extra code for transposing cazy_bray_dist ignore this
+transposed_braycurtis_matrix <- t(cazy_bray_dist)
+```
+
+
+```{r}
+#comparing CAZyme profiles statistically ignore this
+#First I made a data matrix of the organisms, CAZy types, and counts. Then I made a metadata table with the organisms, groups, and ecological niche
+
+#load necessary libraries
+library(dplyr)
+library(vegan)
+
+#1. Load or prepare your data
+cazyme_data_matrix <- read.csv("C:/Users/naamo/OneDrive/Documents/Dniv/DnivosaComputation/CAZy Dataframes for Pie Chart and Heatmaps/transposed_data_matrix.csv")
+
+meta_cazyme_data <- read.csv("C:/Users/naamo/OneDrive/Documents/Dniv/DnivosaComputation/CAZy Dataframes for Pie Chart and Heatmaps/meta_data_matrix.csv")
+
+#Make sure 'Organism' is the row name
+rownames(cazyme_data_matrix) <- cazyme_data_matrix$Organism
+cazyme_data_matrix <- cazyme_data_matrix[ , -1]  # remove the Organism column
+
+# 2. Normalize to relative abundance (row-wise)
+cazyme_rel_abund <- cazyme_data_matrix / rowSums(cazyme_data_matrix)
+
+# 3. Compute Bray-Curtis distance matrix
+cazy_bray_dist <- vegdist(cazyme_rel_abund, method = "bray")
+
+# 4. Join metadata
+# Make sure rownames in metadata match the order of rows in cazyme_rel_abund
+meta_cazyme_data <- meta_cazyme_data[match(rownames(cazyme_rel_abund), meta_cazyme_data$Organism), ]
+
+# 5. Run PERMANOVA (e.g., testing for Group differences)
+cazy_permanova_result <- adonis2(cazy_bray_dist ~ Group, data = meta_cazyme_data)
+
+# 6. View results
+print(cazy_permanova_result)
+
+```
+```{r}
+#creating a PCoA plot from the PERMANOVA data
+library(ggplot2)
+
+#compute PCoA (Classical MDS values)
+pcoa_result <- cmdscale(cazy_bray_dist, k = 2, eig = TRUE)  # k = number of dimensions
+
+#Create PCoA dataframe
+# Pull out coordinates
+pcoapoints <- as.data.frame(pcoa_result$points)
+colnames(pcoapoints) <- c("PCoA1", "PCoA2")
+
+# Add sample and metadata info
+pcoapoints$Organism <- rownames(pcoapoints)
+pcoapoints <- merge(pcoapoints, meta_cazyme_data, by = "Organism")
+
+#Calculate variance explained (optional, for axis labels)
+eig_vals <- pcoa_result$eig
+var_explained <- round(100 * eig_vals[1:2] / sum(eig_vals), 1)
+
+#Plot with ggplot2
+ggplot(pcoapoints, aes(x = PCoA1, y = PCoA2, color = Group, label = Organism)) +
+  geom_point(size = 4, alpha = 0.8) + 
+  geom_text(vjust = -0.5, size = 2.5) +  # Use geom_label()
+  theme_minimal() +
+  labs(
+    title = "PCoA (Bray-Curtis)",
+    x = paste0("PCoA1 (", var_explained[1], "%)"),
+    y = paste0("PCoA2 (", var_explained[2], "%)")
+  ) +
+  theme(
+    text = element_text(size = 14),
+    legend.title = element_text(size = 13),
+    legend.text = element_text(size = 12)
+  )
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++-,
+
